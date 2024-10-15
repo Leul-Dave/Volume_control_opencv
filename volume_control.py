@@ -39,7 +39,7 @@ while True:
     # Process detected hands
     if hands:
         for hand in hands:
-            # Draw the hand landmarks with custom styling
+            # Draw the hand landmarks
             drawing_utils.draw_landmarks(
                 image, 
                 hand, 
@@ -48,7 +48,7 @@ while True:
                 connection_drawing_spec=drawing_utils.DrawingSpec(color=(255, 255, 255), thickness=1)  # White lines
             )
 
-            # Extract specific landmarks for index finger tip (id 8) and thumb tip (id 4)
+            # Get specific landmarks for index finger tip (id 8) and thumb tip (id 4)
             landmarks = hand.landmark
             for id, landmark in enumerate(landmarks):
                 x = int(landmark.x * frame_width)
