@@ -2,7 +2,7 @@ import cv2
 import mediapipe as mp
 import pyautogui
 
-x1 = x2 = y1 = y2 = 0
+x1 = x2 = y1 = y2 = None
 
 def distance(x1, x2, y1, y2):
     return (((x2 - x1) ** 2 + (y2 - y1) ** 2) ** (0.5))
@@ -10,10 +10,24 @@ def distance(x1, x2, y1, y2):
 # Initialize webcam and MediaPipe Hands module
 webCam = cv2.VideoCapture(0)
 my_hands = mp.solutions.hands.Hands()
+hand_ = mp.solutions.hands
 drawing_utils = mp.solutions.drawing_utils
 drawing_styles = mp.solutions.drawing_styles  # For improved styling
 
-# Infinite loop to process each frame
+# recognize if the hand is in a fist
+def is_fist(hand_landmarks):
+    finger_tips = [8, 12, 16, 20]
+    finger_dips = [6, 10, 14, 18]
+
+    for tip, dip in zip(finger_tips, finger_dips):
+        if hand_landmarks.landmark[tip].y < hand_landmarks.landmark[dip].y: #in computer vision, y-coordinates increase as you go down the screen
+            return False
+    
+    return True
+
+
+
+# loop to process each frame
 while True:
     _, image = webCam.read()
     image = cv2.flip(image, 1)  # Flip to make it mirror-like
@@ -29,7 +43,7 @@ while True:
             drawing_utils.draw_landmarks(
                 image, 
                 hand, 
-                mp.solutions.hands.HAND_CONNECTIONS,
+                hand_.HAND_CONNECTIONS,
                 landmark_drawing_spec=drawing_utils.DrawingSpec(color=(255, 255, 255), thickness=1, circle_radius=3),  # White circles
                 connection_drawing_spec=drawing_utils.DrawingSpec(color=(255, 255, 255), thickness=1)  # White lines
             )
@@ -40,16 +54,20 @@ while True:
                 x = int(landmark.x * frame_width)
                 y = int(landmark.y * frame_height)
                 if id == 8:  # Index finger tip
-                    cv2.circle(img=image, center=(x, y), radius=8, color=(255, 255, 255), thickness=1)  # Yellow circle
+                    cv2.circle(img=image, center=(x, y), radius=5, color=(255, 255, 255), thickness=1)  
                     x1 = x
                     y1 = y
                 if id == 4:  # Thumb tip
-                    cv2.circle(img=image, center=(x, y), radius=8, color=(255, 255, 255), thickness=1)  # Yellow circle
+                    cv2.circle(img=image, center=(x, y), radius=5, color=(255, 255, 255), thickness=1)  
                     x2 = x
                     y2 = y
 
+            if is_fist(hand):
+                pyautogui.press('esc')
+
         # Calculate the distance between the thumb and index finger
-        dist = distance(x1, x2, y1, y2)
+        if x1 is not None and x2 is not None and y1 is not None and y2 is not None:
+            dist = distance(x1, x2, y1, y2)
 
         # Find the midpoint between thumb and index finger
         mid_x = (x1 + x2) // 2
@@ -65,7 +83,6 @@ while True:
         else:
             pyautogui.press('volumedown')
 
-    # Show the updated image
     cv2.imshow('Hand volume control', image)
 
     # Exit loop on 'ESC' key
@@ -73,6 +90,5 @@ while True:
     if key == 27:
         break
 
-# Release resources
 webCam.release()
 cv2.destroyAllWindows()
