@@ -77,8 +77,8 @@ while True:
         radius = int(dist // 2)
         cv2.circle(image, (mid_x, mid_y), radius, color=(255, 255, 255), thickness=1)
 
-        # Adjust the system volume based on the distance (diameter of the circle)
-        if dist > 100:  # Adjust this threshold as per your needs
+        # Adjust the system volume based on the distance 
+        if dist > 100:  
             pyautogui.press('volumeup')
         else:
             pyautogui.press('volumedown')
